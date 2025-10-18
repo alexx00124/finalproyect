@@ -1,2 +1,0 @@
-# finalproyect
-temariodeclases
