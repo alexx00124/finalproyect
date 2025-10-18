@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Asignatura {
+  id        String   @id @default(cuid())
+  codigo    String   @unique
+  nombre    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  modulos   Modulo[]
+}
+
+model Modulo {
+  id           String     @id @default(cuid())
+  nombre       String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  asignaturaId String
+  asignatura   Asignatura @relation(fields: [asignaturaId], references: [id])
+
+  @@index([asignaturaId])
+}
