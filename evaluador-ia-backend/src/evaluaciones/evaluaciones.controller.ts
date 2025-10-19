@@ -36,4 +36,16 @@ export class EvaluacionesController {
   byModulo(@Param('moduloId') moduloId: string) {
     return this.service.findByModulo(moduloId);
   }
+
+  // --- NUEVO: responder y calificar una evaluación ---
+  @Post(':id/responder')
+  responder(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      respuestas: Array<{ preguntaId: number; opcion: 'A' | 'B' | 'C' | 'D' }>;
+    },
+  ) {
+    return this.service.calificar(id, body?.respuestas ?? []);
+  }
 }
