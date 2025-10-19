@@ -33,8 +33,15 @@ export class ModulosService {
   update(id: string, dto: UpdateModuloDto) {
     const data: Prisma.ModuloUpdateInput = {
       ...(dto.nombre ? { nombre: dto.nombre } : {}),
-      ...(dto.asignaturaId ? { asignatura: { connect: { id: dto.asignaturaId } } } : {}),
+      ...(dto.asignaturaId
+        ? {
+            asignatura: {
+              connect: { id: dto.asignaturaId },
+            },
+          }
+        : {}),
     };
+
     return this.prisma.modulo.update({
       where: { id },
       data,
