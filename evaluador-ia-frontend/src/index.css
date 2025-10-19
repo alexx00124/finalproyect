@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+
+/* opcional: forzamos modo oscuro por ahora */
+:root { color-scheme: dark; }
