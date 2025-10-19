@@ -14,6 +14,7 @@ model Asignatura {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // 1:N con Modulo
   modulos   Modulo[]
 }
 
@@ -23,8 +24,44 @@ model Modulo {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
+  // FK a Asignatura (materia)
   asignaturaId String
   asignatura   Asignatura @relation(fields: [asignaturaId], references: [id])
 
-  @@index([asignaturaId])
+  // 1:N con Materia (si las usas aparte)
+  materias     Materia[]
+
+  // 1:N con Evaluacion (nuevo)
+  evaluaciones Evaluacion[]
+
+  @@index([asignaturaId])          // para filtrar módulos por asignatura
+  @@unique([asignaturaId, nombre]) // nombre único por asignatura
+}
+
+model Materia {
+  id         String   @id @default(cuid())
+  nombre     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // FK a Modulo
+  moduloId   String
+  modulo     Modulo   @relation(fields: [moduloId], references: [id])
+
+  @@index([moduloId]) // para filtrar materias por módulo
+}
+
+model Evaluacion {
+  id        String   @id @default(cuid())
+  titulo    String
+  contenido String   // JSON como string o markdown
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // FK a Modulo
+  moduloId  String
+  modulo    Modulo   @relation(fields: [moduloId], references: [id])
+
+  @@unique([moduloId, titulo])
+  @@index([moduloId])
 }
