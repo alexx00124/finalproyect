@@ -16,7 +16,7 @@ export default function AppLayout() {
   return (
     <div className="min-h-screen bg-slate-900 text-white grid grid-cols-[220px_1fr]">
       <aside className="bg-slate-800 p-4">
-        <h1 className="text-xl font-bold mb-6">Evaluador IA</h1>
+        <h1 className="text-xl font-bold mb-6">Evaluador IA Universitaria de Colombia</h1>
         <nav className="space-y-2">
           {/* Mantiene la selección en el querystring */}
           <NavLink to={`/?carrera=${carrera}&jornada=${jornada}`} className={linkClass}>
