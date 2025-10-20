@@ -1,35 +1,23 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.tsx
+import { Routes, Route, Navigate } from 'react-router-dom';
+import AppLayout from './layouts/AppLayout';
+import CarreraSelect from './pages/CarreraSelect';
+import JornadaSelect from './pages/JornadaSelect';
+import ModulosPage from './pages/ModulosPage';
+import MateriasPage from './pages/MateriasPage';
+import EvaluacionPage from './pages/EvaluacionPage';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={<Navigate to="/carreras" replace />} />
+        <Route path="/carreras" element={<CarreraSelect />} />
+        <Route path="/carreras/:carreraId/jornada" element={<JornadaSelect />} />
+        <Route path="/carreras/:carreraId/jornada/:jornada/modulos" element={<ModulosPage />} />
+        <Route path="/modulos/:moduloId/materias" element={<MateriasPage />} />
+        <Route path="/materias/:materiaId/evaluacion" element={<EvaluacionPage />} />
+      </Route>
+    </Routes>
+  );
 }
-
-export default App

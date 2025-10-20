@@ -5,6 +5,7 @@ import './index.css';
 
 import AppLayout from './layouts/AppLayout';
 import CarreraSelect from './pages/CarreraSelect';
+import JornadaSelect from './pages/JornadaSelect';
 import ModulosPage from './pages/ModulosPage';
 import MateriasPage from './pages/MateriasPage';
 import EvaluacionPage from './pages/EvaluacionPage';
@@ -14,10 +15,11 @@ const router = createBrowserRouter([
     path: '/',
     element: <AppLayout />,
     children: [
-      { index: true, element: <CarreraSelect /> },
-      { path: 'modulos', element: <ModulosPage /> },
-      { path: 'materias', element: <MateriasPage /> },
-      { path: 'evaluacion', element: <EvaluacionPage /> },
+      { index: true, element: <CarreraSelect /> }, // 1) Carrera
+      { path: 'carreras/:carreraId/jornada', element: <JornadaSelect /> }, // 2) Jornada
+      { path: 'carreras/:carreraId/jornada/:jornada/modulos', element: <ModulosPage /> }, // 3) Módulos
+      { path: 'modulos/:moduloId/materias', element: <MateriasPage /> }, // 4) Materias (de un módulo)
+      { path: 'materias/:materiaId/evaluacion', element: <EvaluacionPage /> }, // 5) Evaluación
     ],
   },
 ]);
