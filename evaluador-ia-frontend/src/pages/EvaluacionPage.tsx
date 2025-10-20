@@ -13,6 +13,48 @@ interface Pregunta {
   correcta?: "A" | "B" | "C" | "D";
 }
 
+// --- Helpers de feedback por desempeño ---
+function getFeedback(pct: number, aciertos: number, total: number) {
+  const incorrectas = total - aciertos;
+
+  if (pct >= 80) {
+    return {
+      icon: '🎉',
+      title: '¡Excelente! 💪',
+      text:
+        `Obtuviste ${pct}% (${aciertos}/${total}). Dominio sólido del tema. ` +
+        `Si quieres ir al siguiente nivel, repasa los matices de las preguntas en que dudaste.`,
+      bg: 'bg-emerald-600/20',
+      ring: 'ring-emerald-500/40',
+    };
+  }
+
+  if (pct >= 50) {
+    return {
+      icon: '🧠',
+      title: '¡Vas por buen camino! 🙂',
+      text:
+        `Lograste ${pct}% (${aciertos}/${total}). Estás entendiendo lo esencial, ` +
+        `pero te recomiendo reforzar los conceptos de las ${incorrectas} que fallaste. ` +
+        `Repasa el material y vuelve a intentarlo: verás cómo sube tu puntaje.`,
+      bg: 'bg-amber-500/20',
+      ring: 'ring-amber-400/40',
+    };
+  }
+
+  return {
+    icon: '🌱',
+    title: 'Tranquilo, ¡esto es parte del proceso! 💫',
+    text:
+      `Tu resultado fue ${pct}% (${aciertos}/${total}). ` +
+      `Te sugiero repasar los fundamentos y hacer foco en las preguntas falladas. ` +
+      `Practica un poco más y vuelve: la mejora se nota rápido.`,
+    bg: 'bg-rose-500/20',
+    ring: 'ring-rose-400/40',
+  };
+}
+
+
 const MODULO1_ID = "cmgxianty0000com411pgo2qp";
 
 export default function EvaluacionPage() {
@@ -393,21 +435,26 @@ export default function EvaluacionPage() {
       {resultado ? (
         <div className="bg-slate-800 rounded-2xl p-6">
           <h3 className="text-lg font-bold mb-2">Resultado Final</h3>
+
+          {(() => {
+            const fb = getFeedback(resultado.porcentaje, resultado.correctas, resultado.total);
+            return (
+              <div className={`mt-2 mb-4 rounded-xl p-4 ring-1 ${fb.bg} ${fb.ring}`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{fb.icon}</span>
+                  <div>
+                    <div className="font-semibold">{fb.title}</div>
+                    <p className="text-sm opacity-90">{fb.text}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+          
           <p className="text-sm opacity-80 mb-4">
             Correctas: {resultado.correctas} / {resultado.total} (
             {resultado.porcentaje}%)
           </p>
-          <div
-            className={`p-3 rounded-lg text-black font-semibold mb-4 ${
-              resultado.porcentaje >= 80
-                ? "bg-green-400"
-                : resultado.porcentaje >= 60
-                ? "bg-yellow-400"
-                : "bg-red-400"
-            }`}
-          >
-            {resultado.mensaje}
-          </div>
 
           {Array.isArray(resultado?.detalle) && resultado.detalle.length > 0 && (
             <div className="mt-4 space-y-3">
