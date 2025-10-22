@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEvaluacionDto } from './dto/create-evaluacion.dto';
@@ -123,11 +128,9 @@ export class EvaluacionesService {
     const raw = ev.contenido ?? '';
     let data: any;
     try {
-      data = JSON.parse(raw);
+      data = JSON.parse(String(raw));
     } catch {
-      throw new BadRequestException(
-        'Esta evaluación no tiene preguntas en formato JSON (contenido no corregible).',
-      );
+      throw new BadRequestException('Esta evaluación no tiene preguntas en formato JSON (contenido no corregible).');
     }
 
     const preguntas = Array.isArray(data?.preguntas) ? data.preguntas : [];
@@ -142,7 +145,7 @@ export class EvaluacionesService {
     // 4) Calcular resultado
     let correctas = 0;
     const detalle = preguntas.map((p: any) => {
-      const tu = mapa.get(p.id) ?? null;
+      const tu = mapa.get(Number(p.id)) ?? null;
       const ok = p.correcta as 'A' | 'B' | 'C' | 'D';
       const acierto = tu === ok;
       if (acierto) correctas++;
