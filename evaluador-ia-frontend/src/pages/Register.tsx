@@ -60,11 +60,11 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-700">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-cyan-500 rounded-full mb-4">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -79,12 +79,12 @@ export default function Register() {
                 />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-slate-800">Crear Cuenta</h1>
-            <p className="text-slate-600 mt-2">Únete a nuestra plataforma</p>
+            <h1 className="text-3xl font-bold text-white">Crear Cuenta</h1>
+            <p className="text-slate-400 mt-2">Únete a nuestra plataforma</p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-3 p-4 rounded-lg border-l-4 bg-red-50 border-red-500 text-red-700 mb-4">
+            <div className="flex items-center gap-3 p-4 rounded-lg border-l-4 bg-red-950 border-red-500 text-red-400 mb-4">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
@@ -93,7 +93,7 @@ export default function Register() {
           )}
 
           {success && (
-            <div className="flex items-center gap-3 p-4 rounded-lg border-l-4 bg-green-50 border-green-500 text-green-700 mb-4">
+            <div className="flex items-center gap-3 p-4 rounded-lg border-l-4 bg-green-950 border-green-500 text-green-400 mb-4">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -103,77 +103,77 @@ export default function Register() {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Nombre completo
               </label>
               <input
                 type="text"
                 placeholder="Alexander García"
                 {...register('nombre')}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.nombre ? 'border-red-500' : 'border-slate-300'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+                className={`w-full px-4 py-3 rounded-lg border bg-slate-700 text-white placeholder-slate-400 ${
+                  errors.nombre ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 focus:ring-cyan-500'
+                } focus:outline-none focus:ring-2 transition-all`}
               />
               {errors.nombre && (
-                <p className="mt-1 text-sm text-red-500">{errors.nombre.message}</p>
+                <p className="mt-1 text-sm text-red-400">{errors.nombre.message}</p>
               )}
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Correo electrónico
               </label>
               <input
                 type="email"
                 placeholder="tu@email.com"
                 {...register('email')}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.email ? 'border-red-500' : 'border-slate-300'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+                className={`w-full px-4 py-3 rounded-lg border bg-slate-700 text-white placeholder-slate-400 ${
+                  errors.email ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 focus:ring-cyan-500'
+                } focus:outline-none focus:ring-2 transition-all`}
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
               )}
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Contraseña
               </label>
               <input
                 type="password"
                 placeholder="••••••••"
                 {...register('password')}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.password ? 'border-red-500' : 'border-slate-300'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+                className={`w-full px-4 py-3 rounded-lg border bg-slate-700 text-white placeholder-slate-400 ${
+                  errors.password ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 focus:ring-cyan-500'
+                } focus:outline-none focus:ring-2 transition-all`}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>
               )}
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Confirmar contraseña
               </label>
               <input
                 type="password"
                 placeholder="••••••••"
                 {...register('confirmPassword')}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-slate-300'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+                className={`w-full px-4 py-3 rounded-lg border bg-slate-700 text-white placeholder-slate-400 ${
+                  errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-slate-600 focus:ring-cyan-500'
+                } focus:outline-none focus:ring-2 transition-all`}
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-500">{errors.confirmPassword.message}</p>
+                <p className="mt-1 text-sm text-red-400">{errors.confirmPassword.message}</p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={isLoading || success}
-              className="w-full py-3 px-4 rounded-lg font-medium bg-blue-500 hover:bg-blue-600 text-white disabled:bg-blue-300 transition-all flex items-center justify-center"
+              className="w-full py-3 px-4 rounded-lg font-medium bg-cyan-500 hover:bg-cyan-600 text-white disabled:bg-cyan-700 transition-all flex items-center justify-center"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -190,9 +190,9 @@ export default function Register() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-slate-600">
+            <p className="text-slate-400">
               ¿Ya tienes una cuenta?{' '}
-              <Link to="/login" className="text-blue-500 hover:text-blue-600 font-medium">
+              <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-medium">
                 Inicia sesión aquí
               </Link>
             </p>

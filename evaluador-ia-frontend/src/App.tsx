@@ -12,7 +12,7 @@ import EvaluacionPage from './pages/EvaluacionPage';
 // Páginas de autenticación
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 
 // 🔒 Ruta protegida
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -23,26 +23,42 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// 🔓 Ruta pública (si ya está logueado, redirige a carreras)
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    return <Navigate to="/carreras" replace />;
+  }
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rutas públicas */}
+        {/* Rutas públicas (si ya está logueado, redirige) */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-
-        {/* Rutas protegidas (requieren token) */}
-        <Route
-          path="/dashboard"
+        <Route 
+          path="/login" 
           element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } 
         />
 
-        {/* Rutas del flujo principal (evaluador) */}
+        {/* Redirección temporal por si alguien intenta ir a /dashboard */}
+        <Route path="/dashboard" element={<Navigate to="/carreras" replace />} />
+
+        {/* Rutas protegidas dentro del AppLayout */}
         <Route
           element={
             <ProtectedRoute>
@@ -50,12 +66,15 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/carreras" replace />} />
+          {/* Flujo principal */}
           <Route path="/carreras" element={<CarreraSelect />} />
           <Route path="/carreras/:carreraId/jornada" element={<JornadaSelect />} />
           <Route path="/carreras/:carreraId/jornada/:jornada/modulos" element={<ModulosPage />} />
           <Route path="/modulos/:moduloId/materias" element={<MateriasPage />} />
           <Route path="/materias/:materiaId/evaluacion" element={<EvaluacionPage />} />
+          
+          {/* Perfil de usuario */}
+          <Route path="/profile" element={<Profile />} />
         </Route>
       </Routes>
     </BrowserRouter>

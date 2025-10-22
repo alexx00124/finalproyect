@@ -7,35 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// -----------------------------------------------------
+// Modelos de Asignatura, Módulo, Materia y Evaluación
+// -----------------------------------------------------
+
 model Asignatura {
   id        String   @id @default(cuid())
   codigo    String   @unique
   nombre    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // 1:N con Modulo
-  modulos Modulo[]
+  modulos   Modulo[] // 1:N con Modulo
 }
 
 model Modulo {
-  id        String   @id @default(cuid())
-  nombre    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // FK a Asignatura (materia)
+  id           String     @id @default(cuid())
+  nombre       String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   asignaturaId String
-  asignatura   Asignatura @relation(fields: [asignaturaId], references: [id])
+  evaluaciones Evaluacion[] // 1:N con Evaluacion
+  materias     Materia[]    // 1:N con Materia
+  asignatura   Asignatura @relation(fields: [asignaturaId], references: [id]) // FK a Asignatura
 
-  // 1:N con Materia (si las usas aparte)
-  materias Materia[]
-
-  // 1:N con Evaluacion (nuevo)
-  evaluaciones Evaluacion[]
-
-  @@unique([asignaturaId, nombre]) // nombre único por asignatura
-  @@index([asignaturaId]) // para filtrar módulos por asignatura
+  @@unique([asignaturaId, nombre])
+  @@index([asignaturaId])
 }
 
 model Materia {
@@ -43,30 +39,29 @@ model Materia {
   nombre    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  moduloId  String
+  modulo    Modulo   @relation(fields: [moduloId], references: [id]) // FK a Modulo
 
-  // FK a Modulo
-  moduloId String
-  modulo   Modulo @relation(fields: [moduloId], references: [id])
-
-  @@index([moduloId]) // para filtrar materias por módulo
+  @@index([moduloId])
 }
 
 model Evaluacion {
   id        String   @id @default(cuid())
   titulo    String
-  contenido String // JSON como string o markdown
+  contenido String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // FK a Modulo
-  moduloId String
-  modulo   Modulo @relation(fields: [moduloId], references: [id])
+  moduloId  String
+  modulo    Modulo   @relation(fields: [moduloId], references: [id]) // FK a Modulo
 
   @@unique([moduloId, titulo])
   @@index([moduloId])
 }
 
-// Modelo Usuario
+// -----------------------------------------------------
+// Nuevo Modelo Usuario
+// -----------------------------------------------------
+
 model Usuario {
   id        String   @id @default(cuid())
   email     String   @unique

@@ -1,5 +1,24 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ⚠️ CAMBIOS CLAVE: Usar @import en lugar de @tailwind */
+/* Reemplaza @tailwind base */
+@import "tailwindcss/preflight"; 
+/* Reemplaza @tailwind components (ahora se fusiona en utilities) */
+/* Reemplaza @tailwind utilities */
+@import "tailwindcss"; 
 
-/* opcional: forzamos modo oscuro por ahora */
-:root { color-scheme: dark; }
+/* Estilos Globales: Reinicio y Tipografía */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Opcional: para forzar el modo oscuro si lo deseas */
+/* :root { color-scheme: dark; } */

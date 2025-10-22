@@ -3,9 +3,10 @@
 /* 🧩 Fuente global */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* 🌈 Nuevas importaciones Tailwind v4 */
-@import "tailwindcss/preflight";
-@import "tailwindcss/utilities";
+/* 🌈 Tailwind CSS - Sintaxis correcta */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* 🔧 Reset general */
 * {
@@ -21,14 +22,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 🎨 Estilos heredados del template original */
+/* 🎨 Root sin limitaciones - pantalla completa */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
+/* Estilos del template original (por si los necesitas después) */
 .logo {
   height: 6em;
   padding: 1.5em;
