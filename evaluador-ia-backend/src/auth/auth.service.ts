@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -26,11 +25,9 @@ export class AuthService {
     const existing = await this.prisma.usuario.findUnique({
       where: { email },
     });
-
     if (existing) throw new ConflictException('El email ya está registrado.');
 
     const hashed = await bcrypt.hash(password, 10);
-
     const user = await this.prisma.usuario.create({
       data: { email, password: hashed, nombre },
     });
@@ -47,24 +44,33 @@ export class AuthService {
   async login(
     email: string,
     password: string,
-  ): Promise<{ access_token: string; user: { id: string; email: string; nombre: string } }> {
+  ): Promise<{ 
+    access_token: string; 
+    user: { id: string; email: string; nombre: string; rol: string } 
+  }> {
     const user = await this.prisma.usuario.findUnique({
       where: { email },
     });
-
     if (!user) throw new UnauthorizedException('Credenciales inválidas.');
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) throw new UnauthorizedException('Credenciales inválidas.');
 
+    // 🆕 Incluir rol en el token
     const token = await this.jwt.signAsync({
       sub: user.id,
       email: user.email,
+      rol: user.rol, // 👈 AGREGADO
     });
 
     return {
       access_token: token,
-      user: { id: user.id, email: user.email, nombre: user.nombre },
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        nombre: user.nombre,
+        rol: user.rol, // 👈 AGREGADO
+      },
     };
   }
 }
