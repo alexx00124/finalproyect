@@ -6,6 +6,7 @@ interface User {
   id: string;
   email: string;
   nombre: string;
+  rol: 'estudiante' | 'docente' | 'admin';
 }
 
 export const useAuth = () => {
@@ -19,9 +20,15 @@ export const useAuth = () => {
     const storedUser = localStorage.getItem('auth_user');
 
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+        setIsAuthenticated(true);
+      } catch {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        setIsAuthenticated(false);
+      }
     }
   }, []);
 
@@ -31,7 +38,11 @@ export const useAuth = () => {
     setToken(authToken);
     setUser(userData);
     setIsAuthenticated(true);
-    navigate('/dashboard');
+
+    // 🔀 Redirección según el rol del usuario
+    if (userData.rol === 'admin') navigate('/admin');
+    else if (userData.rol === 'docente') navigate('/carreras');
+    else navigate('/dashboard');
   };
 
   const logout = () => {
