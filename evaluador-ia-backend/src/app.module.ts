@@ -1,7 +1,8 @@
-// src/app.module.ts
-
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config'; // 👈 1. IMPORTA ESTO
+import { ConfigModule } from '@nestjs/config';
+
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { EvaluacionesModule } from './evaluaciones/evaluaciones.module';
@@ -12,12 +13,9 @@ import { IaEvaluacionesModule } from './ia-evaluaciones/ia-evaluaciones.module';
 
 @Module({
   imports: [
-    // 👈 2. AÑADE ESTE BLOQUE AQUÍ, NORMALMENTE AL PRINCIPIO
     ConfigModule.forRoot({
-      isGlobal: true, // Esto hace que no necesites importar ConfigModule en otros módulos
+      isGlobal: true,
     }),
-    
-    // Tus otros módulos que ya tenías
     PrismaModule,
     EvaluacionesModule,
     AsignaturasModule,
@@ -25,5 +23,7 @@ import { IaEvaluacionesModule } from './ia-evaluaciones/ia-evaluaciones.module';
     AuthModule,
     IaEvaluacionesModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
