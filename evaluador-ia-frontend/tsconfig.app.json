@@ -1,3 +1,4 @@
+// tsconfig.app.json (CORREGIDO Y FUSIONADO)
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
@@ -5,10 +6,13 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["vite/client"],
+    
+    // 👇 CAMBIO 1: Fusionamos los arrays de "types"
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"],
+    
     "skipLibCheck": true,
 
-    /* Bundler mode */
+    /* Bundler mode (Mantuvimos tus opciones modernas) */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -16,7 +20,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
+    /* Linting (Mantuvimos tus opciones modernas) */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -24,5 +28,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+
+  // 👇 CAMBIO 2: Añadimos los archivos de testing a "include"
+  "include": ["src", "vite.config.ts", "vitest.setup.ts"]
 }
