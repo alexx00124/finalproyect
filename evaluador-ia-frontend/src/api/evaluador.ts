@@ -3,7 +3,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 // ---- ASIGNATURAS ----
 export async function getAsignaturas() {
-  const res = await fetch(`${API_URL}/asignaturas`);
+  const res = await fetch(`${API_URL}/asignaturas`);1
   if (!res.ok) throw new Error('Error cargando asignaturas');
   return res.json();
 }

@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { authApi } from '../api/auth';
 import { useAuth } from '../hooks/useAuth';
 
+// Validación del formulario
 const loginSchema = z.object({
   email: z.string().email('Correo electrónico inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
@@ -32,12 +33,17 @@ export default function Login() {
     setError('');
 
     try {
+      // Llamamos al backend
       const response = await authApi.login(data);
+      // response = { access_token, user:{ id,email,nombre,rol } }
+
+      // Guardar sesión y redirigir según rol (useAuth.login ya hace navigate)
       login(response.access_token, response.user);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     } catch (err: any) {
       setError(
-        err.response?.data?.message || 'Credenciales inválidas. Por favor, intenta de nuevo.'
+        err?.response?.data?.message ||
+          'Credenciales inválidas. Por favor, intenta de nuevo.'
       );
     } finally {
       setIsLoading(false);
@@ -71,7 +77,11 @@ export default function Login() {
           {error && (
             <div className="flex items-center gap-3 p-4 rounded-lg border-l-4 bg-red-950 border-red-500 text-red-400 mb-4">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span className="text-sm font-medium">{error}</span>
             </div>
@@ -112,7 +122,9 @@ export default function Login() {
                 } focus:outline-none focus:ring-2 transition-all`}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-400">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -153,7 +165,10 @@ export default function Login() {
           <div className="mt-6 text-center">
             <p className="text-slate-400">
               ¿No tienes una cuenta?{' '}
-              <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-medium">
+              <Link
+                to="/register"
+                className="text-cyan-400 hover:text-cyan-300 font-medium"
+              >
                 Regístrate aquí
               </Link>
             </p>
