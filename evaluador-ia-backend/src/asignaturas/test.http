@@ -1,0 +1,17 @@
+@base = http://localhost:3000
+@id = cmgvk6kd30000coao4eqemxvf
+
+### Crear (POST)
+POST {{base}}/asignaturas
+Content-Type: application/json
+
+{
+  "codigo": "MAT103",
+  "nombre": "Cálculo I"
+}
+
+### Listar todas (GET)
+GET {{base}}/asignaturas
+
+### Obtener por id (GET)
+GET {{base}}/asignaturas/{{id}}

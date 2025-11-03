@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------
+// Modelos de Asignatura, Módulo, Materia y Evaluación
+// -----------------------------------------------------
+
+model Asignatura {
+  id        String   @id @default(cuid())
+  codigo    String   @unique
+  nombre    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  modulos   Modulo[] // 1:N con Modulo
+}
+
+model Modulo {
+  id           String       @id @default(cuid())
+  nombre       String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  asignaturaId String
+  evaluaciones Evaluacion[] // 1:N con Evaluacion
+  materias     Materia[]    // 1:N con Materia
+  asignatura   Asignatura   @relation(fields: [asignaturaId], references: [id]) // FK a Asignatura
+
+  @@unique([asignaturaId, nombre])
+  @@index([asignaturaId])
+}
+
+model Materia {
+  id        String   @id @default(cuid())
+  nombre    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  moduloId  String
+  modulo    Modulo   @relation(fields: [moduloId], references: [id]) // FK a Modulo
+
+  @@index([moduloId])
+}
+
+model Evaluacion {
+  id        String   @id @default(cuid())
+  titulo    String
+  contenido String   // 🎯 Aquí guardaremos las 5 preguntas como JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  moduloId  String
+  modulo    Modulo   @relation(fields: [moduloId], references: [id]) // FK a Modulo
+
+  @@unique([moduloId, titulo])
+  @@index([moduloId])
+}
+
+// -----------------------------------------------------
+// Modelo Usuario
+// -----------------------------------------------------
+
+model Usuario {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hash con bcrypt
+  nombre    String
+  rol       String   @default("estudiante") // 🆕 "estudiante" o "docente"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
