@@ -8,7 +8,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import * as multer from 'multer';
+import { memoryStorage } from 'multer';
+import { File } from 'multer';
 import { IaEvaluacionesService } from './ia-evaluaciones.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -19,15 +20,11 @@ import { EvaluacionGenerada } from './interfaces/evaluacion.interface';
 export class IaEvaluacionesController {
   constructor(private readonly iaService: IaEvaluacionesService) {}
 
-  /**
-   * 📄 Generar evaluación desde PDF
-   * Solo accesible por usuarios con rol "docente"
-   */
   @Post('generar')
   @Roles('docente')
   @UseInterceptors(
     FileInterceptor('pdf', {
-      storage: multer.memoryStorage(),
+      storage: memoryStorage(),
       limits: { fileSize: 10 * 1024 * 1024 },
       fileFilter: (req, file, cb) => {
         if (file.mimetype !== 'application/pdf') {
@@ -38,7 +35,7 @@ export class IaEvaluacionesController {
     }),
   )
   async generarEvaluacion(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: File,
     @Body('moduloId') moduloId: string,
   ): Promise<{ message: string; data: EvaluacionGenerada }> {
     console.log('📄 Archivo recibido:', {
@@ -70,22 +67,5 @@ export class IaEvaluacionesController {
       console.error('❌ Error al generar evaluación:', error);
       throw error;
     }
-  }
-
-  /**
-   * 💾 Guardar evaluación generada
-   */
-  @Post('guardar')
-  @Roles('docente')
-  async guardarEvaluacion(
-    @Body('titulo') titulo: string,
-    @Body('preguntas') preguntas: any[],
-    @Body('moduloId') moduloId: string,
-  ) {
-    if (!titulo || !preguntas || !moduloId) {
-      throw new BadRequestException('Faltan datos requeridos');
-    }
-
-    return await this.iaService.guardarEvaluacion(titulo, preguntas, moduloId);
   }
 }
