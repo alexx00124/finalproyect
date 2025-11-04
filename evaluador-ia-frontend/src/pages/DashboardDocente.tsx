@@ -1,5 +1,4 @@
 // src/pages/DashboardDocente.tsx
-
 export default function DashboardDocente() {
   return (
     <div className="text-slate-100">

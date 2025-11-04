@@ -78,7 +78,20 @@ export default function EvaluacionPage() {
   const actual = useMemo(() => preguntas[idx], [preguntas, idx]);
 
   useEffect(() => {
-    const API = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    const getApiUrl = (): string => {
+      if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
+        return process.env.VITE_API_URL || "http://localhost:3000";
+      }
+      if (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+      }
+      if (typeof window !== "undefined" && (window as any).__VITE_API_URL__) {
+        return (window as any).__VITE_API_URL__;
+      }
+      return "http://localhost:3000";
+    };
+
+    const API = getApiUrl();
 
     async function fetchJson(url: string) {
       const r = await fetch(url);
@@ -89,7 +102,7 @@ export default function EvaluacionPage() {
         return null;
       }
     }
-
+    
     function toArray(data: any): any[] {
       if (Array.isArray(data)) return data;
       if (data && Array.isArray(data.items)) return data.items;
@@ -232,8 +245,8 @@ export default function EvaluacionPage() {
           const rawOpts = Array.isArray(p.opciones)
             ? p.opciones
             : Array.isArray(p.options)
-            ? p.options
-            : [];
+              ? p.options
+              : [];
 
           const opciones: Opcion[] = rawOpts
             .map((o: any, j: number) => {
@@ -262,371 +275,364 @@ export default function EvaluacionPage() {
     }
 
     const loadEvaluacion = async () => {
-      setLoading(true);
-      try {
-        const ids = [moduloIdFromUrl, MODULO1_ID].filter(Boolean) as string[];
-        let ev: any = null;
-        let arr: any[] = [];
+    setLoading(true);
+    try {
+      const ids = [moduloIdFromUrl, MODULO1_ID].filter(Boolean) as string[];
+      let ev: any = null;
+      let arr: any[] = [];
 
-        // 1) intenta por moduloId
-        for (const id of ids) {
-          const url = `${API}/evaluaciones?moduloId=${encodeURIComponent(id)}`;
-          const json = await fetchJson(url);
-          arr = toArray(json);
-          if (arr.length) {
-            ev = pickEvaluacion(arr);
-            if (ev) break;
-          }
-        }
-
-        // 2) si no hay nada, trae todas
-        if (!ev) {
-          const urlAll = `${API}/evaluaciones`;
-          const json = await fetchJson(urlAll);
-          arr = toArray(json);
+      // 1) intenta por moduloId
+      for (const id of ids) {
+        const url = `${API}/evaluaciones?moduloId=${encodeURIComponent(id)}`;
+        const json = await fetchJson(url);
+        arr = toArray(json);
+        if (arr.length) {
           ev = pickEvaluacion(arr);
+          if (ev) break;
         }
+      }
 
-        if (!ev) {
-          setEvaluacion(null);
-          setPreguntas([]);
-          return;
-        }
+      // 2) si no hay nada, trae todas
+      if (!ev) {
+        const urlAll = `${API}/evaluaciones`;
+        const json = await fetchJson(urlAll);
+        arr = toArray(json);
+        ev = pickEvaluacion(arr);
+      }
 
-        setEvaluacion(ev);
-
-        // ---------- parseo flexible ----------
-        const preguntasCrudas = extractPreguntas(ev);
-        let parsed: Pregunta[] = [];
-
-        if (Array.isArray(preguntasCrudas) && preguntasCrudas.length) {
-          parsed = parseDesdeJsonFlexible(preguntasCrudas);
-        } else if (ev?.contenido && typeof ev.contenido === "string") {
-          const txt = ev.contenido.trim();
-          if (txt.startsWith("[") || txt.startsWith("{")) {
-            try {
-              const maybe = JSON.parse(txt);
-              if (Array.isArray(maybe)) {
-                parsed = parseDesdeJsonFlexible(maybe);
-              } else {
-                const cand =
-                  maybe?.preguntas ??
-                  maybe?.data?.preguntas ??
-                  maybe?.cuestionario?.preguntas ??
-                  maybe?.estructura?.preguntas ??
-                  maybe?.items ??
-                  null;
-
-                parsed = Array.isArray(cand)
-                  ? parseDesdeJsonFlexible(cand)
-                  : parseDesdeTexto(txt);
-              }
-            } catch {
-              parsed = parseDesdeTexto(txt);
-            }
-          } else {
-            parsed = parseDesdeTexto(txt);
-          }
-        } else if (ev?.contenido && typeof ev.contenido === "object") {
-          const cand =
-            ev.contenido?.preguntas ??
-            ev.contenido?.data?.preguntas ??
-            ev.contenido?.cuestionario?.preguntas ??
-            ev.contenido?.estructura?.preguntas ??
-            ev.contenido?.items ??
-            (Array.isArray(ev.contenido) ? ev.contenido : null);
-
-          if (Array.isArray(cand)) {
-            parsed = parseDesdeJsonFlexible(cand);
-          }
-        }
-
-        setPreguntas(parsed);
-      } catch (e) {
-        console.error("Error cargando evaluación:", e);
+      if (!ev) {
         setEvaluacion(null);
         setPreguntas([]);
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    loadEvaluacion();
-  }, [moduloIdFromUrl]);
+      setEvaluacion(ev);
 
-  // ---------- Enviar ----------
-  const onSubmit = async () => {
-    if (!codigo.trim()) {
-      alert("Por favor completa el código del estudiante.");
-      return;
-    }
-    if (!evaluacion) {
-      alert("No hay evaluación cargada.");
-      return;
-    }
+      // ---------- parseo flexible ----------
+      const preguntasCrudas = extractPreguntas(ev);
+      let parsed: Pregunta[] = [];
 
-    // Arma arreglo con lo que marcó el estudiante
-    const respuestasMarcadas = preguntas.map((p) => ({
-      preguntaId: p.numero,
-      opcion: (respuestas[p.numero] ?? "") as "A" | "B" | "C" | "D",
-    }));
+      if (Array.isArray(preguntasCrudas) && preguntasCrudas.length) {
+        parsed = parseDesdeJsonFlexible(preguntasCrudas);
+      } else if (ev?.contenido && typeof ev.contenido === "string") {
+        const txt = ev.contenido.trim();
+        if (txt.startsWith("[") || txt.startsWith("{")) {
+          try {
+            const maybe = JSON.parse(txt);
+            if (Array.isArray(maybe)) {
+              parsed = parseDesdeJsonFlexible(maybe);
+            } else {
+              const cand =
+                maybe?.preguntas ??
+                maybe?.data?.preguntas ??
+                maybe?.cuestionario?.preguntas ??
+                maybe?.estructura?.preguntas ??
+                maybe?.items ??
+                null;
 
-    // ¿Podemos autocorregir en el front? (todas con 'correcta')
-    const puedeAutocorregir = preguntas.every(
-      (p) => typeof p.correcta !== "undefined"
-    );
+              parsed = Array.isArray(cand)
+                ? parseDesdeJsonFlexible(cand)
+                : parseDesdeTexto(txt);
+            }
+          } catch {
+            parsed = parseDesdeTexto(txt);
+          }
+        } else {
+          parsed = parseDesdeTexto(txt);
+        }
+      } else if (ev?.contenido && typeof ev.contenido === "object") {
+        const cand =
+          ev.contenido?.preguntas ??
+          ev.contenido?.data?.preguntas ??
+          ev.contenido?.cuestionario?.preguntas ??
+          ev.contenido?.estructura?.preguntas ??
+          ev.contenido?.items ??
+          (Array.isArray(ev.contenido) ? ev.contenido : null);
 
-    try {
-      if (puedeAutocorregir) {
-        // Calificación local
-        const detalle = preguntas.map((p) => {
-          const marcada = respuestas[p.numero];
-          const correcta = p.correcta!;
-          const esCorrecta = !!marcada && marcada === correcta;
-          return {
-            numero: p.numero,
-            enunciado: p.enunciado,
-            marcada,
-            correcta,
-            esCorrecta,
-          };
-        });
-
-        const correctas = detalle.filter((d) => d.esCorrecta).length;
-
-        setResultado({
-          correctas,
-          total: preguntas.length,
-          porcentaje: Math.round((correctas / preguntas.length) * 100),
-          mensaje: "Respuestas enviadas.",
-          detalle,
-          payload: respuestasMarcadas,
-        });
-      } else {
-        alert(
-          "No se pudo autocorregir porque faltan soluciones en las preguntas."
-        );
+        if (Array.isArray(cand)) {
+          parsed = parseDesdeJsonFlexible(cand);
+        }
       }
-    } catch (error) {
-      alert("❌ Error al enviar la evaluación.");
-      console.error(error);
+
+      setPreguntas(parsed);
+    } catch (e) {
+      console.error("Error cargando evaluación:", e);
+      setEvaluacion(null);
+      setPreguntas([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return <p>Cargando evaluación...</p>;
-  if (!evaluacion || total === 0)
-    return (
-      <div className="mx-auto max-w-3xl space-y-4">
-        <p className="bg-slate-800 rounded-xl p-4">
-          No se encontró la evaluación.
-        </p>
-      </div>
-    );
+  loadEvaluacion();
+}, [moduloIdFromUrl]);
 
+// ---------- Enviar ----------
+const onSubmit = async () => {
+  if (!codigo.trim()) {
+    alert("Por favor completa el código del estudiante.");
+    return;
+  }
+  if (!evaluacion) {
+    alert("No hay evaluación cargada.");
+    return;
+  }
+
+  // Arma arreglo con lo que marcó el estudiante
+  const respuestasMarcadas = preguntas.map((p) => ({
+    preguntaId: p.numero,
+    opcion: (respuestas[p.numero] ?? "") as "A" | "B" | "C" | "D",
+  }));
+
+  // ¿Podemos autocorregir en el front? (todas con 'correcta')
+  const puedeAutocorregir = preguntas.every(
+    (p) => typeof p.correcta !== "undefined"
+  );
+
+  try {
+    if (puedeAutocorregir) {
+      // Calificación local
+      const detalle = preguntas.map((p) => {
+        const marcada = respuestas[p.numero];
+        const correcta = p.correcta!;
+        const esCorrecta = !!marcada && marcada === correcta;
+        return {
+          numero: p.numero,
+          enunciado: p.enunciado,
+          marcada,
+          correcta,
+          esCorrecta,
+        };
+      });
+
+      const correctas = detalle.filter((d) => d.esCorrecta).length;
+
+      setResultado({
+        correctas,
+        total: preguntas.length,
+        porcentaje: Math.round((correctas / preguntas.length) * 100),
+        mensaje: "Respuestas enviadas.",
+        detalle,
+        payload: respuestasMarcadas,
+      });
+    } else {
+      alert(
+        "No se pudo autocorregir porque faltan soluciones en las preguntas."
+      );
+    }
+  } catch (error) {
+    alert("❌ Error al enviar la evaluación.");
+    console.error(error);
+  }
+};
+
+if (loading) return <p>Cargando evaluación...</p>;
+if (!evaluacion || total === 0)
   return (
-    <div className="mx-auto max-w-3xl space-y-6 pb-16">
-      <header className="space-y-1">
-        <h2 className="text-2xl font-bold">Evaluación</h2>
-        <p className="opacity-80 text-sm">
-          Carrera: {carrera} — Jornada: {jornada} — Módulo: {modulo}
-        </p>
-      </header>
-
-      {resultado ? (
-        <div className="bg-slate-800 rounded-2xl p-6">
-          <h3 className="text-lg font-bold mb-2">Resultado Final</h3>
-
-          {(() => {
-            const fb = getFeedback(resultado.porcentaje, resultado.correctas, resultado.total);
-            return (
-              <div className={`mt-2 mb-4 rounded-xl p-4 ring-1 ${fb.bg} ${fb.ring}`}>
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{fb.icon}</span>
-                  <div>
-                    <div className="font-semibold">{fb.title}</div>
-                    <p className="text-sm opacity-90">{fb.text}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-          
-          <p className="text-sm opacity-80 mb-4">
-            Correctas: {resultado.correctas} / {resultado.total} (
-            {resultado.porcentaje}%)
-          </p>
-
-          {Array.isArray(resultado?.detalle) && resultado.detalle.length > 0 && (
-            <div className="mt-4 space-y-3">
-              <h4 className="font-semibold">Detalle de respuestas</h4>
-              <ul className="space-y-2">
-                {resultado.detalle.map((d: any) => (
-                  <li
-                    key={d.numero}
-                    className={`rounded-lg p-3 text-sm ${
-                      d.esCorrecta
-                        ? "bg-green-900/30 border border-green-700/40"
-                        : "bg-red-900/30 border border-red-700/40"
-                    }`}
-                  >
-                    <div className="font-medium flex items-center gap-2">
-                      <span
-                        className={`inline-block w-5 text-center font-bold ${
-                          d.esCorrecta ? "text-green-400" : "text-red-400"
-                        }`}
-                      >
-                        {d.esCorrecta ? "✓" : "✗"}
-                      </span>
-                      <span>Pregunta {d.numero}</span>
-                    </div>
-                    <div className="opacity-90 mt-1">{d.enunciado}</div>
-                    <div className="mt-1">
-                      <span className="opacity-70">Marcada:</span>{" "}
-                      <span className="font-semibold">
-                        {d.marcada ?? "—"}
-                      </span>
-                      {!d.esCorrecta && (
-                        <>
-                          {" • "}
-                          <span className="opacity-70">Correcta:</span>{" "}
-                          <span className="font-semibold">{d.correcta}</span>
-                        </>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <button
-            onClick={() => {
-              setResultado(null);
-              setIdx(0);
-            }}
-            className="mt-4 rounded-xl bg-cyan-400 text-black px-4 py-2 font-semibold hover:opacity-90"
-          >
-            Reintentar
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-5">
-          <div>
-            <div className="flex items-center justify-between text-sm opacity-80 mb-2">
-              <span>
-                Pregunta {idx + 1} de {total}
-              </span>
-              <span>{Math.round(((idx + 1) / total) * 100)}%</span>
-            </div>
-            <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-3 bg-cyan-400 rounded-full transition-all"
-                style={{ width: `${((idx + 1) / total) * 100}%` }}
-              />
-            </div>
-          </div>
-
-          <label className="block">
-            <span className="text-sm opacity-90">Código del estudiante</span>
-            <input
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value)}
-              className="mt-1 w-full rounded-xl bg-slate-700 px-3 py-2 outline-none focus:ring-2 focus:ring-cyan-400/60"
-            />
-          </label>
-
-          <div className="bg-slate-800 p-5 rounded-2xl shadow-sm">
-            <p className="font-semibold mb-4 leading-relaxed">
-              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-cyan-400 text-black font-bold mr-2">
-                {actual.numero}
-              </span>
-              {actual.enunciado}
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {actual.opciones.map((opt) => {
-                const selected = respuestas[actual.numero] === opt.letra;
-                return (
-                  <button
-                    key={opt.letra}
-                    onClick={() =>
-                      setRespuestas((p) => ({
-                        ...p,
-                        [actual.numero]: opt.letra,
-                      }))
-                    }
-                    className={`group rounded-xl text-left px-4 py-3 transition border
-                    ${
-                      selected
-                        ? "bg-cyan-400/90 text-black border-cyan-300"
-                        : "bg-slate-700/70 hover:bg-slate-700 border-slate-600"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span
-                        className={`mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-bold
-                        ${
-                          selected ? "bg-black/20" : "bg-slate-600 text-white"
-                        }`}
-                      >
-                        {opt.letra}
-                      </span>
-                      <span className="leading-relaxed">{opt.texto}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-5 flex items-center gap-3">
-              <button
-                onClick={() => setIdx((i) => Math.max(0, i - 1))}
-                disabled={idx === 0}
-                className={`rounded-xl px-4 py-2 font-semibold transition
-                  ${
-                    idx === 0
-                      ? "bg-slate-700/60 cursor-not-allowed"
-                      : "bg-slate-700 hover:bg-slate-600"
-                  }`}
-              >
-                Anterior
-              </button>
-
-              {idx < total - 1 ? (
-                <button
-                  onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
-                  disabled={!respuestas[actual.numero]}
-                  className={`rounded-xl px-4 py-2 font-semibold transition
-                    ${
-                      respuestas[actual.numero]
-                        ? "bg-cyan-400 text-black hover:opacity-90"
-                        : "bg-slate-700/60 cursor-not-allowed"
-                    }`}
-                >
-                  Siguiente
-                </button>
-              ) : (
-                <button
-                  onClick={onSubmit}
-                  disabled={
-                    !codigo.trim() ||
-                    preguntas.some((p) => !respuestas[p.numero])
-                  }
-                  className={`rounded-xl px-4 py-2 font-semibold transition
-                    ${
-                      !codigo.trim() ||
-                      preguntas.some((p) => !respuestas[p.numero])
-                        ? "bg-slate-700/60 cursor-not-allowed"
-                        : "bg-green-400 text-black hover:opacity-90"
-                    }`}
-                >
-                  Enviar evaluación
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="mx-auto max-w-3xl space-y-4">
+      <p className="bg-slate-800 rounded-xl p-4">
+        No se encontró la evaluación.
+      </p>
     </div>
   );
+
+return (
+  <div className="mx-auto max-w-3xl space-y-6 pb-16">
+    <header className="space-y-1">
+      <h2 className="text-2xl font-bold">Evaluación</h2>
+      <p className="opacity-80 text-sm">
+        Carrera: {carrera} — Jornada: {jornada} — Módulo: {modulo}
+      </p>
+    </header>
+
+    {resultado ? (
+      <div className="bg-slate-800 rounded-2xl p-6">
+        <h3 className="text-lg font-bold mb-2">Resultado Final</h3>
+
+        {(() => {
+          const fb = getFeedback(resultado.porcentaje, resultado.correctas, resultado.total);
+          return (
+            <div className={`mt-2 mb-4 rounded-xl p-4 ring-1 ${fb.bg} ${fb.ring}`}>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{fb.icon}</span>
+                <div>
+                  <div className="font-semibold">{fb.title}</div>
+                  <p className="text-sm opacity-90">{fb.text}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        <p className="text-sm opacity-80 mb-4">
+          Correctas: {resultado.correctas} / {resultado.total} (
+          {resultado.porcentaje}%)
+        </p>
+
+        {Array.isArray(resultado?.detalle) && resultado.detalle.length > 0 && (
+          <div className="mt-4 space-y-3">
+            <h4 className="font-semibold">Detalle de respuestas</h4>
+            <ul className="space-y-2">
+              {resultado.detalle.map((d: any) => (
+                <li
+                  key={d.numero}
+                  className={`rounded-lg p-3 text-sm ${d.esCorrecta
+                      ? "bg-green-900/30 border border-green-700/40"
+                      : "bg-red-900/30 border border-red-700/40"
+                    }`}
+                >
+                  <div className="font-medium flex items-center gap-2">
+                    <span
+                      className={`inline-block w-5 text-center font-bold ${d.esCorrecta ? "text-green-400" : "text-red-400"
+                        }`}
+                    >
+                      {d.esCorrecta ? "✓" : "✗"}
+                    </span>
+                    <span>Pregunta {d.numero}</span>
+                  </div>
+                  <div className="opacity-90 mt-1">{d.enunciado}</div>
+                  <div className="mt-1">
+                    <span className="opacity-70">Marcada:</span>{" "}
+                    <span className="font-semibold">
+                      {d.marcada ?? "—"}
+                    </span>
+                    {!d.esCorrecta && (
+                      <>
+                        {" • "}
+                        <span className="opacity-70">Correcta:</span>{" "}
+                        <span className="font-semibold">{d.correcta}</span>
+                      </>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <button
+          onClick={() => {
+            setResultado(null);
+            setIdx(0);
+          }}
+          className="mt-4 rounded-xl bg-cyan-400 text-black px-4 py-2 font-semibold hover:opacity-90"
+        >
+          Reintentar
+        </button>
+      </div>
+    ) : (
+      <div className="space-y-5">
+        <div>
+          <div className="flex items-center justify-between text-sm opacity-80 mb-2">
+            <span>
+              Pregunta {idx + 1} de {total}
+            </span>
+            <span>{Math.round(((idx + 1) / total) * 100)}%</span>
+          </div>
+          <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="h-3 bg-cyan-400 rounded-full transition-all"
+              style={{ width: `${((idx + 1) / total) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <label className="block">
+          <span className="text-sm opacity-90">Código del estudiante</span>
+          <input
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value)}
+            className="mt-1 w-full rounded-xl bg-slate-700 px-3 py-2 outline-none focus:ring-2 focus:ring-cyan-400/60"
+          />
+        </label>
+
+        <div className="bg-slate-800 p-5 rounded-2xl shadow-sm">
+          <p className="font-semibold mb-4 leading-relaxed">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-cyan-400 text-black font-bold mr-2">
+              {actual.numero}
+            </span>
+            {actual.enunciado}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {actual.opciones.map((opt) => {
+              const selected = respuestas[actual.numero] === opt.letra;
+              return (
+                <button
+                  key={opt.letra}
+                  onClick={() =>
+                    setRespuestas((p) => ({
+                      ...p,
+                      [actual.numero]: opt.letra,
+                    }))
+                  }
+                  className={`group rounded-xl text-left px-4 py-3 transition border
+                    ${selected
+                      ? "bg-cyan-400/90 text-black border-cyan-300"
+                      : "bg-slate-700/70 hover:bg-slate-700 border-slate-600"
+                    }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-bold
+                        ${selected ? "bg-black/20" : "bg-slate-600 text-white"
+                        }`}
+                    >
+                      {opt.letra}
+                    </span>
+                    <span className="leading-relaxed">{opt.texto}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 flex items-center gap-3">
+            <button
+              onClick={() => setIdx((i) => Math.max(0, i - 1))}
+              disabled={idx === 0}
+              className={`rounded-xl px-4 py-2 font-semibold transition
+                  ${idx === 0
+                  ? "bg-slate-700/60 cursor-not-allowed"
+                  : "bg-slate-700 hover:bg-slate-600"
+                }`}
+            >
+              Anterior
+            </button>
+
+            {idx < total - 1 ? (
+              <button
+                onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
+                disabled={!respuestas[actual.numero]}
+                className={`rounded-xl px-4 py-2 font-semibold transition
+                    ${respuestas[actual.numero]
+                    ? "bg-cyan-400 text-black hover:opacity-90"
+                    : "bg-slate-700/60 cursor-not-allowed"
+                  }`}
+              >
+                Siguiente
+              </button>
+            ) : (
+              <button
+                onClick={onSubmit}
+                disabled={
+                  !codigo.trim() ||
+                  preguntas.some((p) => !respuestas[p.numero])
+                }
+                className={`rounded-xl px-4 py-2 font-semibold transition
+                    ${!codigo.trim() ||
+                    preguntas.some((p) => !respuestas[p.numero])
+                    ? "bg-slate-700/60 cursor-not-allowed"
+                    : "bg-green-400 text-black hover:opacity-90"
+                  }`}
+              >
+                Enviar evaluación
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
 }
